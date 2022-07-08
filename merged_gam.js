@@ -35,7 +35,12 @@ if(in_browser){
 }
 
 notify(title);
-
+if(!in_browser){
+	localStorage={};
+}
+if(typeof(localStorage.best_times)==="undefined"){
+	localStorage.best_times=[];
+}
 notify("Which level do you want to play");
 let level = 1;
 if(level == 0){
@@ -55,6 +60,7 @@ let widths=[,4];
 let board = levels[level];
 let HEIGHT = heights[level];
 let WIDTH = widths[level];
+//notify(`BEST TIME: ${Number(localStorage["best_time_level_"+level])/100} SECONDS`);
 if(in_browser){titlebox.innerText=title_gray;}
 //let display=document.createElement('p');
 //document.body.appendChild(display);
@@ -149,14 +155,19 @@ let act_on_keypress = key => {
 					let finish_time = Date.now();
 					let clear_time  = finish_time - starting_time;
 					notify("HOORAY, YOU'VE WON!!!");
-					notify("YOU'VE CLEARED THE LEVEL IN "+clear_time/1000+" SECONDS!");
+					notify(won_message="YOU'VE CLEARED THE LEVEL IN "+clear_time/1000+" SECONDS!");
+					if(typeof(localStorage["best_time_level_"+level])==="undefined" || clear_time < Number(localStorage["best_time_level_"+level])){
+						notify(won_message+"\nTHAT'S A NEW RECORD!!!")
+						localStorage["best_time_level_"+level]=clear_time;
+					}
 					process.exit();
 				}
 			}
 		}
 	}
 };
-notify('Press any key...');
+//notify('Press any key...');
+notify(`BEST TIME: ${Number(localStorage["best_time_level_"+level])/1000} SECONDS`);
 
 //while(1){
 
