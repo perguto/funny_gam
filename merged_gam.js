@@ -3,8 +3,22 @@ if(in_browser){
 	let display = document.querySelector('#display');
 	let titlebox = document.querySelector('#titlebox');
 	let notifications = document.querySelector('#notifications');
-	let canvas= document.querySelector('#canvas');
+	canvas= document.querySelector('#canvas');
+	canvas.width=960
+	canvas.height=540
+	tilesize=32
+	ctx=canvas.getContext('2d');
+	ctx.fillRect(0,0,canvas.width,canvas.height)
+	tilemap=new Image();
+	tilemap.src='./tiles/TilesetInterior.png'
+//	tilemap.onload=()=>{
+//		ctx.fillStyle='black';
+//		ctx.drawImage(tilemap,0,0)
+//	}
+//	alert();
+		//
 }
+
 let title = `
  [0;1;35;95m_[0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0m         [0;1;33;93m_[0m       [0;1;35;95m_[0m                [0;1;32;92m__[0;1;36;96m__[0;1;34;94m__[0;1;35;95m_[0m [0;1;31;91m__[0;1;33;93m__[0;1;32;92m__[0;1;36;96m_[0m [0;1;34;94m__[0;1;35;95m__[0;1;31;91m__[0;1;33;93m_[0m 
 [0;1;31;91m([0m  [0;1;33;93m_[0;1;32;92m__[0;1;36;96m_[0m [0;1;34;94m|\[0m     [0;1;33;93m/[0;1;32;92m([0m [0;1;36;96m([0m    [0;1;35;95m/[0;1;31;91m([0m [0;1;33;93m([0m    [0;1;36;96m/[0;1;34;94m|\[0m     [0;1;33;93m/[0m [0;1;32;92m([0m  [0;1;34;94m__[0;1;35;95m__[0m [0;1;31;91m([0m  [0;1;32;92m__[0;1;36;96m_[0m  [0;1;34;94m([0m       [0;1;32;92m)[0m
@@ -34,6 +48,14 @@ if(in_browser){
 	 notify = s => {console.log(s);}
 }
 
+let color= {'x':'gray',
+	0:"blue",
+	'p':"red"
+}
+let tile= {'x':[0,0],
+	0:[32,32],
+	'p':[64,64]
+}
 notify(title);
 if(!in_browser){
 	localStorage={};
@@ -55,6 +77,7 @@ let levels = [
 		[0,0,0,0],
 		['x',0,0,'x']]
 ]
+tile_pixels=32
 let heights=[,4];
 let widths=[,4];
 let board = levels[level];
@@ -68,9 +91,22 @@ let print_board = board => {
 	board.forEach(h=>console.log(...h));
 	console.log('\n');
 	if(in_browser){
-	display.innerText=''.concat(...board.map(r=>''.concat(...r)+'\n'));
+		display.innerText=''.concat(...board.map(r=>''.concat(...r)+'\n'));
+		render_board(board);
 	}
 };
+let render_board = board =>{
+	for(let j=0;j<HEIGHT;j++){
+		for(let i=0;i<WIDTH;i++){
+
+			ctx.fillStyle=color[board[j][i]];
+			ctx.fillRect(i*tilesize,j*tilesize,tilesize,tilesize)
+			map_piece=tile[board[j][i]]
+			ctx.drawImage(tilemap,...map_piece,tile_pixels,tile_pixels,i*tilesize,j*tilesize,tilesize,tilesize)
+		}
+	}
+}
+
 let is_inbound = (x,y,width=WIDTH,height=HEIGHT) =>{
 	return 0<=x && x<WIDTH && 0<=y && y<HEIGHT;
 }
@@ -79,7 +115,9 @@ let update_board = (x,y,piece_type,b=board)=>{
 		b[y][x]=piece_type;
 	}
 }
+tilemap.onload = () => {
 print_board(board);
+
 let pr=_=>print_board(board);
 let y=HEIGHT-1;
 let x=WIDTH>>1;
@@ -167,7 +205,7 @@ let act_on_keypress = key => {
 	}
 };
 //notify('Press any key...');
-notify(`BEST TIME: ${Number(localStorage["best_time_level_"+level])/1000} SECONDS`);
+if(typeof(localStorage["best_time_level_"+level])!=="undefined"){ notify(`BEST TIME: ${Number(localStorage["best_time_level_"+level])/1000} SECONDS`);}
 
 //while(1){
-
+}
