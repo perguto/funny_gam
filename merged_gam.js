@@ -15,7 +15,9 @@ draw_background = () => {
 }
 draw_end = () => {
 	bgm.stop();
-	won_music.play();
+bgm=new Sound('./music/15 - Credit Theme.ogg',false,bgm_volume);
+	//setTimeout(bgm.play,1000)
+	bgm.play();
 	ctx.fillStyle='#852'
 	ctx.fillRect(0,0,canvas.width,canvas.height)
 	ctx.font=''+Math.round(canvas.height/10)+'px sans-serif';
@@ -47,10 +49,11 @@ draw_background();
     this.sound.pause();
   }
 }
-bgm =new Sound('./music/2 - The Cave.ogg',true,.2);
+bgm_volume=Number(localStorage.volume ?? .2);
+bgm =new Sound('./music/2 - The Cave.ogg',true,bgm_volume);
 bgm.sound.muted=(localStorage.bgm_muted=='true')
 bgm.play();
-won_music=new Sound('./music/8 - End Theme.ogg');
+won_music=new Sound('./music/8 - End Theme.ogg',false,bgm_volume);
 won_sound=new Sound('./sfx/game/Success3.wav',false,1);
 death_sound=new Sound('./sfx/game/GameOver.wav');
 }
@@ -100,7 +103,7 @@ if(typeof(localStorage.best_times)==="undefined"){
 	localStorage.best_times=[];
 }
 notify("Which level do you want to play");
-let level = 1;
+let level = 3;
 if(level == 0){
 	let HEIGHT=2;
 	let WIDTH=3;
@@ -201,6 +204,17 @@ let act_on_keypress = key => {
 	if(key.name==='m'){
 bgm.sound.muted=!bgm.sound.muted;
 		localStorage.bgm_muted=bgm.sound.muted;
+	}else if(key.name==='+'){
+		bgm_volume*=1.4;//TODO bgm with dynamic source
+		if (bgm_volume>1){
+			bgm_volume=1;
+		}
+		bgm.sound.volume=bgm_volume;
+		localStorage.volume=bgm_volume;
+	}else if(key.name==='-'){
+		bgm_volume/=1.4;
+		bgm.sound.volume=bgm_volume;
+		localStorage.volume=bgm_volume;
 	}else
 	if (key.ctrl && key.name === 'c') {
 		notify('Do you want to quit? (Y/N)');
