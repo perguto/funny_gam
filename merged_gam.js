@@ -8,7 +8,21 @@ if(in_browser){
 	canvas.height=540
 	tilesize=32
 	ctx=canvas.getContext('2d');
+draw_background = () => {
+	ctx.fillStyle='#022'
 	ctx.fillRect(0,0,canvas.width,canvas.height)
+
+}
+draw_end = () => {
+	bgm.stop();
+	won_music.play();
+	ctx.fillStyle='#852'
+	ctx.fillRect(0,0,canvas.width,canvas.height)
+	ctx.font=''+Math.round(canvas.height/10)+'px sans-serif';
+	ctx.strokeText('YOU HAVE COMPLETED THE GAME. \nCONGRATULATIONS!!',canvas.width/6,canvas.height/2)
+
+}
+draw_background();
 	tilemap=new Image();
 	tilemap.src='./tiles/TilesetInterior.png'
 //	tilemap.onload=()=>{
@@ -17,6 +31,28 @@ if(in_browser){
 //	}
 //	alert();
 		//
+	function Sound(src,loop=false,volume=1) {
+  this.sound = document.createElement("audio");
+  this.sound.src = src;
+  this.sound.loop = loop;
+	this.sound.volume=volume;
+  this.sound.setAttribute("preload", "auto");
+  this.sound.setAttribute("controls", "none");
+  this.sound.style.display = "none";
+  document.body.appendChild(this.sound);
+  this.play = function(){
+    this.sound.play();
+  }
+  this.stop = function(){
+    this.sound.pause();
+  }
+}
+bgm =new Sound('./music/2 - The Cave.ogg',true,.2);
+bgm.sound.muted=(localStorage.bgm_muted=='true')
+bgm.play();
+won_music=new Sound('./music/8 - End Theme.ogg');
+won_sound=new Sound('./sfx/game/Success3.wav',false,1);
+death_sound=new Sound('./sfx/game/GameOver.wav');
 }
 
 let title = `
@@ -70,19 +106,33 @@ if(level == 0){
 	let WIDTH=3;
 	let board = Array(HEIGHT).fill(0).map(_=>Array(WIDTH).fill(0));
 }
+level3=
+`xx00xx
+x00000
+00x000`
 let levels = [
 	,
 	[[0,0,0,0],
 		[0,'x','x',0],
 		[0,0,0,0],
-		['x',0,0,'x']]
+		['x',0,0,'x']],
+
+	[[0,0,0,0],
+		[0,'x','x',0],
+		[0,0,'x',0],
+		['x',0,0,0]]
 ]
+levels.push(level3.split('\n').map(r=>r.split('')));
 tile_pixels=32
-let heights=[,4];
-let widths=[,4];
-let board = levels[level];
-let HEIGHT = heights[level];
-let WIDTH = widths[level];
+let heights=[,4,4,3];
+let widths=[,4,4,6];
+load_level = () =>{
+board = levels[level];
+HEIGHT = heights[level];
+WIDTH = widths[level];
+	draw_background();
+	print_board(board);
+}
 //notify(`BEST TIME: ${Number(localStorage["best_time_level_"+level])/100} SECONDS`);
 if(in_browser){titlebox.innerText=title_gray;}
 //let display=document.createElement('p');
@@ -116,17 +166,20 @@ let update_board = (x,y,piece_type,b=board)=>{
 	}
 }
 tilemap.onload = () => {
+load_level();
 print_board(board);
 
 let pr=_=>print_board(board);
-let y=HEIGHT-1;
-let x=WIDTH>>1;
-let vx=0;
-let vy=0;
-let WON=0;
+	initialize_player = () => {
+y=HEIGHT-1;
+x=WIDTH>>1;
+vx=0;
+vy=0;
+WON=0;
 board[y][x]='p';
 pr();
-
+	}
+initialize_player();
 let starting_time=Date.now();
 if(!in_browser){
 	const readline = require('readline');
@@ -144,6 +197,11 @@ if(in_browser){
 });
 }
 let act_on_keypress = key => {
+	bgm.play();
+	if(key.name==='m'){
+bgm.sound.muted=!bgm.sound.muted;
+		localStorage.bgm_muted=bgm.sound.muted;
+	}else
 	if (key.ctrl && key.name === 'c') {
 		notify('Do you want to quit? (Y/N)');
 		document.addEventListener('keypress', (key) => {
@@ -169,10 +227,12 @@ let act_on_keypress = key => {
 		y+=vy;
 		//if(x<0||x>=WIDTH||y<0||y>=HEIGHT){
 		if(!is_inbound(x,y)){
+			death_sound.play();
 			notify("YOU DIED, BUMBING INTO THE WALL");
 			process.exit();
 		}
 		else{ if(board[y][x]!=0){
+			death_sound.play();
 			notify("YOU DIED, STEPPING ON THE SPIKES");
 			process.exit();
 		}
@@ -190,6 +250,7 @@ let act_on_keypress = key => {
 					}
 				}
 				if(WON){
+					won_sound.play();
 					let finish_time = Date.now();
 					let clear_time  = finish_time - starting_time;
 					notify("HOORAY, YOU'VE WON!!!");
@@ -197,6 +258,14 @@ let act_on_keypress = key => {
 					if(typeof(localStorage["best_time_level_"+level])==="undefined" || clear_time < Number(localStorage["best_time_level_"+level])){
 						notify(won_message+"\nTHAT'S A NEW RECORD!!!")
 						localStorage["best_time_level_"+level]=clear_time;
+					}
+					level++;
+					if(level<levels.length){
+					load_level();
+initialize_player();
+					} else {
+						notify("YOU HAVE CLEARED THE GAME!! THANKS FOR PLAYING");
+						draw_end();
 					}
 					process.exit();
 				}
