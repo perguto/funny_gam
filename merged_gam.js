@@ -103,7 +103,7 @@ if(typeof(localStorage.best_times)==="undefined"){
 	localStorage.best_times=[];
 }
 notify("Which level do you want to play");
-let level = 3;
+let level = 1;
 if(level == 0){
 	let HEIGHT=2;
 	let WIDTH=3;
